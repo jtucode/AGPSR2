@@ -1,5 +1,5 @@
 Package: AGPSR2
-Title: What the Package Does (One Line, Title Case)
+Title: Open-source R Framework for the Semi-automated, Harmonized Processing of Accelerometer and GPS logger data.
 Version: 0.0.0.9000
 Authors@R: 
     person("Jieqi", "Tu", , "jtu22@uic.edu", role = c("aut", "cre"),
