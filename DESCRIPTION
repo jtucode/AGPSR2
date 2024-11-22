@@ -25,6 +25,6 @@ Imports:
     SummarizedActigraphy,
     tools
 Remotes:
-  walkabillylab/activityCounts
+  walkabillylab/activityCounts,
   muschellij2/SummarizedActigraphy
 VignetteBuilder: knitr
