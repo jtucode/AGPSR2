@@ -1,3 +1,6 @@
+## Install the package from GitHub in R:
+devtools::install_github("jtucode/AGPSR2")
+
 # Overview
 _AGPSR_ is an open-source R framework for the semi-automated, harmonized processing of accelerometer and GPS logger data. _AGPSR_ is designed for high-throughput data processing, yielding data appropriate for ecological and other related study designs. _AGPSR_ follows a three-step, automatable sequence of steps: (Step 1) pre-processes and cleans accelerometer gt3x files, (Step 2) pre-processes and cleans GPS logger CSV files and (Step 3) harmonizes accelerometer and GPS logger files. Each of the three parts of _AGPSR_ is coded as a separate R function, with clearly defined input file types, and user-controllable parameters.
 
