@@ -39,7 +39,7 @@ gps_function = function(data_directory, high.speed = 130, height.change = 1000, 
   rawdata = rawdata %>% mutate(HEIGHT = trimws(HEIGHT))
 
   # Make the value for the last change in height equal to zero.
-  rawdata$height_change = abs(rawdata$height_mod[1:rownum] - rawdata$height_mod[c(2:rownum,rownum)])
+  rawdata = rawdata %>% mutate(height_change = abs(height_mod - lag(height_mod,1)))
 
   # Locate values that are too much of a height change
   height = which(rawdata$height_change > height.change)
