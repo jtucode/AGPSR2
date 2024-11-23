@@ -15,8 +15,8 @@
 
 harmonize_function = function(acti_data, gps_data, participant_id = "P2E30001") {
 
-  acti_data = utils::read.csv(acti_data)
-  gps_data = utils::read.csv(gps_data)
+  acti_data = read.csv(acti_data)
+  gps_data = read.csv(gps_data)
 
   #-----------------------------Data formatting----------------------------------#
   gps_data$`UTC TIME` = paste(gps_data$`UTC.DATE`, gps_data$`UTC.TIME`)
@@ -28,8 +28,8 @@ harmonize_function = function(acti_data, gps_data, participant_id = "P2E30001") 
   # Only keep time, activity counts and activity categories in activity dataset
   acti_data =
     acti_data %>%
-    dplyr::select(time, AC, activity)
+    select(time, AC, activity)
 
-  new_data = dplyr::full_join(x = acti_data, y = gps_data, by = c("time" = "UTC TIME"))
-  utils::write.csv(new_data, file = paste0(participant_id, "_merged.csv"))
+  new_data = full_join(x = acti_data, y = gps_data, by = c("time" = "UTC TIME"))
+  write.csv(new_data, file = paste0(participant_id, "_merged.csv"))
 }

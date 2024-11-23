@@ -6,8 +6,10 @@
 (1) a CSV file with minute-level epochs of activity categories for each minute of the participant's usable data, and
 (2) a CSV file summarizing daily wake/sleep times, wear/non-wear times, and inclusion decisions for each study day.}
 \usage{
-gt3x_function(data_directory, valid_day_criteria = 10, wake_bout = 1, sleep_bout = 1, non_wear_chunk_min = 45,
-              start_hour = "04:00:00", participant_id = "P2E30001", days_include = 21)
+gt3x_function(data_directory, valid_day_criteria = 10,
+              wake_bout = 1, sleep_bout = 1,
+              non_wear_chunk_min = 45, start_hour = "04:00:00",
+              participant_id = "P2E30001", days_include = 21)
 }
 \arguments{
 \item{data_directory}{a string of working directory (should be a gt3x file)}
@@ -20,11 +22,11 @@ gt3x_function(data_directory, valid_day_criteria = 10, wake_bout = 1, sleep_bout
 
 \item{non_wear_chunk_min}{the number of inactive minutes to be considered as non-wear time (default: 45)}
 
+\item{start_hour}{the starting hour of a day (default: "04:00:00")}
+
 \item{participant_id}{a string of participant ID (default: "P2E30001")}
 
 \item{days_include}{the number of days to be included in this study (default: 21)}
-
-\item{start_hour:}{the starting hour of a day (default: "04:00:00")}
 }
 \value{
 The code \code{gt3x_function} generates a csv file with minute-level epochs of activity categories for each minute of the participant's usable data

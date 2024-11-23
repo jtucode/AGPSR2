@@ -1,5 +1,5 @@
 Package: AGPSR2
-Title: Open-source R Framework for the Semi-automated, Harmonized Processing of Accelerometer and GPS logger data.
+Title: Open-source R Framework for the Semi-automated, Harmonized Processing of Accelerometer and GPS Logger Data
 Version: 0.0.0.9000
 Authors@R: 
     person("Jieqi", "Tu", , "jtu22@uic.edu", role = c("aut", "cre"),
@@ -27,4 +27,4 @@ Imports:
 Remotes:
   walkabillylab/activityCounts,
   muschellij2/SummarizedActigraphy
-VignetteBuilder: knitr
+

@@ -2,14 +2,16 @@
 #' (1) a CSV file with minute-level epochs of activity categories for each minute of the participant's usable data, and
 #' (2) a CSV file summarizing daily wake/sleep times, wear/non-wear times, and inclusion decisions for each study day.
 #' @usage
-#' gt3x_function(data_directory, valid_day_criteria = 10, wake_bout = 1, sleep_bout = 1, non_wear_chunk_min = 45,
-#'               start_hour = "04:00:00", participant_id = "P2E30001", days_include = 21)
+#' gt3x_function(data_directory, valid_day_criteria = 10,
+#'               wake_bout = 1, sleep_bout = 1,
+#'               non_wear_chunk_min = 45, start_hour = "04:00:00",
+#'               participant_id = "P2E30001", days_include = 21)
 #' @param data_directory a string of working directory (should be a gt3x file)
 #' @param valid_day_criteria minimum hours to be considered as a valid day (default: 10)
 #' @param wake_bout the number of consecutive minutes with positive activity counts to define wake time (default: 1)
 #' @param sleep_bout the number of consecutive minutes with positive activity counts to define wake time (default: 1)
 #' @param non_wear_chunk_min the number of inactive minutes to be considered as non-wear time (default: 45)
-#' @param start_hour: the starting hour of a day (default: "04:00:00")
+#' @param start_hour the starting hour of a day (default: "04:00:00")
 #' @param participant_id a string of participant ID (default: "P2E30001")
 #' @param days_include the number of days to be included in this study (default: 21)
 #' @import tidyverse SummarizedActigraphy activityCounts lubridate
@@ -60,7 +62,7 @@ gt3x_function = function(data_directory, valid_day_criteria = 10, wake_bout = 1,
   non_wear = c()
 
   for (j in as.character(unique(daily$date))) {
-    sub.daily = daily %>% dplyr::filter(date == j)
+    sub.daily = daily %>% filter(date == j)
     print(j)
     date = c(date, j)
 
@@ -119,7 +121,7 @@ gt3x_function = function(data_directory, valid_day_criteria = 10, wake_bout = 1,
     # Detect big chunks of non-wear times (starting from wake time)
     daily_waking =
       sub.daily %>%
-      dplyr::filter(time_GMT >= waketime & time_GMT <= sleeptime)
+      filter(time_GMT >= waketime & time_GMT <= sleeptime)
 
 
     if(nrow(daily_waking) > valid_day_criteria*60) {
@@ -194,12 +196,12 @@ gt3x_function = function(data_directory, valid_day_criteria = 10, wake_bout = 1,
   result$inclusion = inclusion
 
   # Save the inclusion decision result data
-  utils::write.csv(result, paste0(participant_id, "_inclusion_decision.csv"))
+  write.csv(result, paste0(participant_id, "_inclusion_decision.csv"))
 
   dailynew = dailynew %>%
-    dplyr::select(time, date, time_GMT, AC, activity)
+    select(time, date, time_GMT, AC, activity)
 
   # Save the activity classification result data
-  utils::write.csv(dailynew, file = paste0(participant_id, "_acticity_minute.csv"))
+  write.csv(dailynew, file = paste0(participant_id, "_acticity_minute.csv"))
 }
 
