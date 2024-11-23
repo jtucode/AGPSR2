@@ -172,7 +172,7 @@ gps_function = function(data_directory, high.speed = 130, height.change = 1000, 
   # Save imputed dataset
   rawfile.name = basename(data_directory)
   newfile.name = tools::file_path_sans_ext(rawfile.name)
-  if(imputation == T) {utils::write.csv(imputeddata, file = paste0(newfile.name,"_cleaned.csv"))}
+  if(imputation == T) {write.csv(imputeddata, file = paste0(newfile.name,"_cleaned.csv"))}
 
   return(output)
 }
