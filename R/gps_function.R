@@ -7,10 +7,11 @@
 #'                           "illinois,will", "indiana,jasper", "indiana,lake", "indiana,newton",
 #'                           "indiana,porter", "wisconsin,kenosha"))
 #' @param data_directory a string of working directory (should be a .csv file)
-#' @param high.speed Speed higher than this value (km/h) will be dropped (default: 130)
-#' @param height.change One-min height change higher than this value (m) will be dropped (default: 1000)
+#' @param high.speed speed higher than this value (km/h) will be dropped (default: 130)
+#' @param height.change one-min height change higher than this value (m) will be dropped (default: 1000)
 #' @param impute.gap.size Size (mins) of the gaps to impute (should be less than 30 mins) (default: 5)
-#' @param counties A string vector of county names to be investigated (default: "illinois,cook", "illinois,dekalb", "illinois,du page","illinois,grundy",
+#' @param imputation whether or not to save the imputed GPS data file (default: True)
+#' @param counties a string vector of county names to be investigated (default: "illinois,cook", "illinois,dekalb", "illinois,du page","illinois,grundy",
 #'                                                                        "illinois,kane", "illinois,kendall", "illinois,lake", "illinois,mchenry",
 #'                                                                        "illinois,will", "indiana,jasper", "indiana,lake", "indiana,newton",
 #'                                                                        "indiana,porter", "wisconsin,kenosha")
@@ -20,7 +21,7 @@
 
 
 
-gps_function = function(data_directory, high.speed = 130, height.change = 1000, impute.gap.size = 5,
+gps_function = function(data_directory, high.speed = 130, height.change = 1000, impute.gap.size = 5, imputation = T,
                         counties = c("illinois,cook", "illinois,dekalb", "illinois,du page","illinois,grundy",
                                      "illinois,kane", "illinois,kendall", "illinois,lake", "illinois,mchenry",
                                      "illinois,will", "indiana,jasper", "indiana,lake", "indiana,newton",
@@ -30,20 +31,21 @@ gps_function = function(data_directory, high.speed = 130, height.change = 1000, 
   rawdata = read.csv(paste0(data_directory))
 
   #---------------------------------Tidy data------------------------------------#
-  rownum = nrow(rawdata)
-  rawdata$speed_mod = as.numeric(unlist(strsplit(rawdata$SPEED," "))[(1:rownum)*3-1])
-
-  # Locate values that are at too high of a speed
-  hispeed = which(rawdata$speed_mod > high.speed)
-
-  # For the height variable, create the change in height
-  rawdata$height_mod = as.numeric(unlist(strsplit(rawdata$HEIGHT," "))[(1:rownum)*3-1])
+  rawdata = rawdata %>% mutate(speed_mod = as.numeric(gsub(" ","",gsub(" km/h","",SPEED))))
+  rawdata = rawdata %>% mutate(LATITUDE = as.numeric(gsub(" ","",LATITUDE)))
+  rawdata = rawdata %>% mutate(LONGITUDE = as.numeric(gsub(" ","",LONGITUDE)))
+  rawdata = rawdata %>% mutate(height_mod = as.numeric(gsub(" M","",HEIGHT)))
+  rawdata = rawdata %>% mutate(high.speed = ifelse(speed_mod>high.speed,1,0))
+  rawdata = rawdata %>% mutate(HEIGHT = trimws(HEIGHT))
 
   # Make the value for the last change in height equal to zero.
   rawdata$height_change = abs(rawdata$height_mod[1:rownum] - rawdata$height_mod[c(2:rownum,rownum)])
 
   # Locate values that are too much of a height change
   height = which(rawdata$height_change > height.change)
+
+  # Locate values that are at too high of a speed
+  hispeed = which(rawdata$speed_mod > high.speed)
 
   #------------------------------Identify counties--------------------------------#
 
@@ -70,7 +72,9 @@ gps_function = function(data_directory, high.speed = 130, height.change = 1000, 
 
   # Make a list of all the rows to drop
   drops = c(height,hispeed,notinmsa)
-  cleandata = rawdata[-drops,]
+  if(length(drops) == 0) {cleandata = rawdata} else {
+    cleandata = rawdata[-drops,]
+  }
 
   # Compute hour
   # Compute minute
@@ -105,48 +109,51 @@ gps_function = function(data_directory, high.speed = 130, height.change = 1000, 
 
   # STEP 1. First create a dataset with NAs for each minute of an imputable gap
   # Create the start of the imputed dataset
-  imputeddata = cleandata[1:imputes[1],]
+  if(length(imputes)>0) {
+    imputeddata = cleandata[1:imputes[1],]
+    # For each imputable gap insert a set of NAs - one for each minute
+    for(i in 1:length(imputes)){
 
-  # For each imputable gap insert a set of NAs - one for each minute
-  for(i in 1:length(imputes)){
+      # Create the rows to insert into the dataset
+      temp = matrix(NA,nrow = cleandata$gap[imputes[i]],ncol = dim(cleandata)[2])
+      colnames(temp) = colnames(imputeddata)
+      imputeddata = as.data.frame(rbind(imputeddata,temp))
 
-    # Create the rows to insert into the dataset
-    temp = matrix(NA,nrow = cleandata$gap[imputes[i]],ncol = dim(cleandata)[2])
-    colnames(temp) = colnames(imputeddata)
-    imputeddata = as.data.frame(rbind(imputeddata,temp))
+      # Copy over the part of the dataset up until the next gap
+      if(i < length(imputes)){
+        imputeddata = as.data.frame(rbind(imputeddata,cleandata[c((imputes[i]+1):imputes[i+1]),]))
+      }
+      # Copy over the part of the dataset up until the end of the dataset
+      if(i == length(imputes)){
+        imputeddata = as.data.frame(rbind(imputeddata,cleandata[c((imputes[i]+1):dim(cleandata)[1]),]))
+      }
 
-    # Copy over the part of the dataset up until the next gap
-    if(i < length(imputes)){
-      imputeddata = as.data.frame(rbind(imputeddata,cleandata[c((imputes[i]+1):imputes[i+1]),]))
     }
-    # Copy over the part of the dataset up until the end of the dataset
-    if(i == length(imputes)){
-      imputeddata = as.data.frame(rbind(imputeddata,cleandata[c((imputes[i]+1):dim(cleandata)[1]),]))
+
+    # STEP 2. Now impute the gaps
+    imputesnew = intersect(which(imputeddata$gap <= impute.gap.size),which(imputeddata$gap > 1))
+
+    #For each gap to impute
+    for(i in 1:length(imputesnew)){
+
+      gap = imputeddata$gap[imputesnew[i]];
+
+      # Change in latitude across the gap
+      latchg = cleandata$LATITUDE[imputesnew[i]+gap+1] - cleandata$LATITUDE[imputesnew[i]];
+
+      ##Change in longitude across the gap;
+      longchg = cleandata$LONGITUDE[imputesnew[i]+gap+1] - cleandata$LONGITUDE[imputesnew[i]];
+
+      ##For each minute in the imputable gap##
+      for (j in 1:gap){
+        imputeddata$LATITUDE[imputesnew[i]+j] = cleandata$LATITUDE[imputesnew[i]] + latchg/j;
+        imputeddata$LONGITUDE[imputesnew[i]+j] = cleandata$LONGITUDE[imputesnew[i]] + longchg/j;
+        imputeddata$runningminute[imputesnew[i]+j] = cleandata$runningminute[imputesnew[i]] + j;
+      }
     }
+  } else {imputeddata = cleandata}
 
-  }
 
-  # STEP 2. Now impute the gaps
-  imputesnew = intersect(which(imputeddata$gap <= impute.gap.size),which(imputeddata$gap > 1))
-
-  #For each gap to impute
-  for(i in 1:length(imputesnew)){
-
-    gap = imputeddata$gap[imputesnew[i]];
-
-    # Change in latitude across the gap
-    latchg = cleandata$LATITUDE[imputesnew[i]+gap+1] - cleandata$LATITUDE[imputesnew[i]];
-
-    ##Change in longitude across the gap;
-    longchg = cleandata$LONGITUDE[imputesnew[i]+gap+1] - cleandata$LONGITUDE[imputesnew[i]];
-
-    ##For each minute in the imputable gap##
-    for (j in 1:gap){
-      imputeddata$LATITUDE[imputesnew[i]+j] = cleandata$LATITUDE[imputesnew[i]] + latchg/j;
-      imputeddata$LONGITUDE[imputesnew[i]+j] = cleandata$LONGITUDE[imputesnew[i]] + longchg/j;
-      imputeddata$runningminute[imputesnew[i]+j] = cleandata$runningminute[imputesnew[i]] + j;
-    }
-  }
 
   output = rbind(
     paste0("Number of input values: ",dim(rawdata)[1]),
@@ -165,7 +172,7 @@ gps_function = function(data_directory, high.speed = 130, height.change = 1000, 
   # Save imputed dataset
   rawfile.name = basename(data_directory)
   newfile.name = tools::file_path_sans_ext(rawfile.name)
-  utils::write.csv(imputeddata, file = paste0(newfile.name,"_cleaned.csv"))
+  if(imputation == T) {utils::write.csv(imputeddata, file = paste0(newfile.name,"_cleaned.csv"))}
 
   return(output)
 }
