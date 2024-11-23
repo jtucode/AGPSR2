@@ -14,13 +14,15 @@ gps_function(data_directory, high.speed = 130, height.change = 1000, impute.gap.
 \arguments{
 \item{data_directory}{a string of working directory (should be a .csv file)}
 
-\item{high.speed}{Speed higher than this value (km/h) will be dropped (default: 130)}
+\item{high.speed}{speed higher than this value (km/h) will be dropped (default: 130)}
 
-\item{height.change}{One-min height change higher than this value (m) will be dropped (default: 1000)}
+\item{height.change}{one-min height change higher than this value (m) will be dropped (default: 1000)}
 
 \item{impute.gap.size}{Size (mins) of the gaps to impute (should be less than 30 mins) (default: 5)}
 
-\item{counties}{A string vector of county names to be investigated (default: "illinois,cook", "illinois,dekalb", "illinois,du page","illinois,grundy",
+\item{imputation}{whether or not to save the imputed GPS data file (default: True)}
+
+\item{counties}{a string vector of county names to be investigated (default: "illinois,cook", "illinois,dekalb", "illinois,du page","illinois,grundy",
 "illinois,kane", "illinois,kendall", "illinois,lake", "illinois,mchenry",
 "illinois,will", "indiana,jasper", "indiana,lake", "indiana,newton",
 "indiana,porter", "wisconsin,kenosha")}
